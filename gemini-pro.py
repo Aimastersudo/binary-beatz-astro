@@ -5,7 +5,7 @@ import time
 
 # --- Gemini AI Configuration ---
 # ඔයාගේ API Key එක මෙතැනට දාන්න
-API_KEY = "AIzaSyDPW_CL3i0GZNHwwAxEedkVtXyaDZicsTE"
+API_KEY = "AIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
 
 def get_model():
     """Model එක නිවැරදිව Load කරගැනීමේ ශ්‍රිතය"""
