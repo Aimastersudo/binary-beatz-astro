@@ -6,18 +6,25 @@ import json
 # ඔයා ලබා දුන් API Key එක මෙහි ඇතුළත් කර ඇත
 API_KEY = "AIzaSyDSh4ETvoD3_tNTyi09hag34oT_A5XeaiU"
 
-def get_chat_response(prompt):
-    genai.configure(api_key=API_KEY)
-    # 404 Error එක මඟහැරීමට models/ පදය සහිතව උත්සාහ කිරීම
-    for model_name in ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro']:
-        try:
-            model = genai.GenerativeModel(model_name)
-            return model.generate_content(prompt)
-        except:
-            continue
-    return None
+def get_astrology_response(prompt):
+    try:
+        genai.configure(api_key=API_KEY)
+        # API එකේ පවතින විවිධ Models උත්සාහ කර බලයි (404 Error එක මඟහැරීමට)
+        models_to_try = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']
+        
+        for model_id in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_id)
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response
+            except Exception:
+                continue
+        return None
+    except Exception:
+        return None
 
-# --- UI Styling (පින්තූරයට ගැළපෙන CSS) ---
+# --- UI Styling (ඔබ එවූ Sample පින්තූරයට ගැළපෙන සේ සැකසූ CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
 
 st.markdown("""
@@ -47,20 +54,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def create_chart_html(title, planets_data, center_text):
-    houses = {i: "" for i in range(1, 13)}
+    # කොටු 12 සකස් කිරීම
+    houses = {str(i): "" for i in range(1, 13)}
     if planets_data:
         for k, v in planets_data.items():
-            try: houses[int(k)] = v
-            except: pass
+            houses[str(k)] = v
     
     return f"""
     <div class="report-card">
         <p style="text-align:center; font-weight:bold; margin-bottom:5px;">{title}</p>
         <div class="horo-chart">
-            <div class="house">{houses[12]}</div><div class="house">{houses[1]}</div><div class="house">{houses[2]}</div><div class="house">{houses[3]}</div>
-            <div class="house">{houses[11]}</div><div class="center-box">{center_text}</div><div class="house">{houses[4]}</div>
-            <div class="house">{houses[10]}</div><div class="house">{houses[5]}</div>
-            <div class="house">{houses[9]}</div><div class="house">{houses[8]}</div><div class="house">{houses[7]}</div><div class="house">{houses[6]}</div>
+            <div class="house">{houses['12']}</div><div class="house">{houses['1']}</div><div class="house">{houses['2']}</div><div class="house">{houses['3']}</div>
+            <div class="house">{houses['11']}</div><div class="center-box">{center_text}</div><div class="house">{houses['4']}</div>
+            <div class="house">{houses['10']}</div><div class="house">{houses['5']}</div>
+            <div class="house">{houses['9']}</div><div class="house">{houses['8']}</div><div class="house">{houses['7']}</div><div class="house">{houses['6']}</div>
         </div>
     </div>
     """
@@ -83,16 +90,23 @@ if submit:
         {{
             "rashi": {{"1": "රවි", "5": "සඳු"}},
             "navamsa": {{"2": "කුජ", "10": "ගුරු"}},
-            "details": "කරුණාකර මෙහි පින්තූරයේ ඇති ආකාරයට ලග්නය, නැකත සහ පලාඵල විස්තරය ලියන්න."
+            "details": "ලග්නය, නැකත සහ අනෙකුත් විස්තර මෙහි ලියන්න."
         }}
-        json එක හැර වෙනත් කිසිවක් ලබා නොදෙන්න.
+        කරුණාකර json දත්ත පමණක් ලබා දෙන්න.
         """
         
         with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
-            response = get_chat_response(prompt)
+            response = get_astrology_response(prompt)
+            
             if response:
                 try:
-                    res_text = response.text.strip().replace('```json', '').replace('```', '')
+                    res_text = response.text.strip()
+                    # JSON එක පමණක් වෙන් කර ගැනීම
+                    if "```json" in res_text:
+                        res_text = res_text.split("```json")[1].split("```")[0]
+                    elif "```" in res_text:
+                        res_text = res_text.split("```")[1].split("```")[0]
+                    
                     data = json.loads(res_text)
                     
                     col1, col2 = st.columns([1, 1.5])
@@ -101,9 +115,9 @@ if submit:
                         st.markdown(create_chart_html("නවාංශක සටහන", data.get('navamsa'), "නවාංශක"), unsafe_allow_html=True)
                     with col2:
                         st.markdown(f'<div class="report-card"><h3>ජ්‍යොතිෂ වාර්තාව</h3><hr>{data.get("details")}</div>', unsafe_allow_html=True)
-                except Exception as e:
+                except Exception:
                     st.error("දත්ත සැකසීමේ ගැටලුවක් පවතී. කරුණාකර නැවත උත්සාහ කරන්න.")
             else:
-                st.error("API සේවාව සමඟ සම්බන්ධ වීමට නොහැකි විය.")
+                st.error("API සේවාව සමඟ සම්බන්ධ වීමට නොහැකි විය. කරුණාකර ඔබගේ API Key එක පරීක්ෂා කරන්න.")
     else:
         st.warning("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න.")
