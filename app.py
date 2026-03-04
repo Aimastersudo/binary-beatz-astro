@@ -9,8 +9,13 @@ API_KEY = "AIzaSyA7VCTAzBTMzDAVpUg5spYVm24fWfPLg-Y"
 def get_astrology_response(prompt):
     try:
         genai.configure(api_key=API_KEY)
-        # API එකේ පවතින විවිධ Models උත්සාහ කර බලයි (NotFound/404 Error මඟහැරීමට)
-        models_to_try = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']
+        # පවතින විවිධ Model Versions උත්සාහ කරයි
+        models_to_try = [
+            'gemini-1.5-flash', 
+            'models/gemini-1.5-flash', 
+            'gemini-pro', 
+            'models/gemini-pro'
+        ]
         
         for model_id in models_to_try:
             try:
@@ -24,12 +29,11 @@ def get_astrology_response(prompt):
     except Exception:
         return None
 
-# --- UI Styling (පින්තූරයට ගැළපෙන සේ සැකසූ CSS) ---
+# --- UI Styling (CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
 
 st.markdown("""
 <style>
-    .main { background-color: #f8fafc; }
     .report-card { 
         background-color: white; padding: 15px; border-radius: 10px; 
         box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd;
@@ -55,7 +59,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def create_chart_html(title, planets_data, center_text):
-    # කොටු 12 සකස් කිරීම
     houses = {str(i): "" for i in range(1, 13)}
     if planets_data:
         for k, v in planets_data.items():
@@ -87,13 +90,13 @@ if submit:
     if name and pob:
         prompt = f"""
         නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}.
-        මෙම තොරතුරු අනුව වෛදික ජ්‍යොතිෂයට අදාළ 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
+        මෙම තොරතුරු අනුව 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
         {{
             "rashi": {{"1": "රවි", "5": "සඳු"}},
             "navamsa": {{"2": "කුජ", "10": "ගුරු"}},
-            "details": "ලග්නය, නැකත සහ අනෙකුත් පලාඵල විස්තර මෙහි ලියන්න."
+            "details": "කරුණාකර මෙහි ලග්නය, නැකත සහ අනෙකුත් විස්තර පින්තූරයේ ඇති ආකාරයට ලියන්න."
         }}
-        කරුණාකර json දත්ත පමණක් ලබා දෙන්න. වෙනත් කිසිවක් ලියන්න එපා.
+        json එක පමණක් ලබා දෙන්න.
         """
         
         with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
@@ -102,7 +105,6 @@ if submit:
             if response:
                 try:
                     res_text = response.text.strip()
-                    # JSON එක පමණක් වෙන් කර ගැනීම
                     if "```json" in res_text:
                         res_text = res_text.split("```json")[1].split("```")[0]
                     elif "```" in res_text:
