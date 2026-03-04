@@ -4,7 +4,7 @@ import json
 
 # --- Gemini AI Configuration ---
 # ඔයා ලබාගත් API Key එක මෙතැනට ඇතුළත් කරන්න
-API_KEY = "AIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
+API_KEY = "AIzaSyDPW_CL3i0GZNHwwAxEedkVtXyaDZicsTE"
 
 def get_stable_model():
     genai.configure(api_key=API_KEY)
