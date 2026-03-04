@@ -4,20 +4,15 @@ import json
 
 # --- Gemini AI Configuration ---
 # ඔයා ලබාගත් API Key එක මෙතැනට ඇතුළත් කරන්න
-API_KEY = "AIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
+API_KEY = "ඔAIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
 
 def get_stable_model():
-    """Model එක නිවැරදිව හඳුනාගැනීම සඳහා"""
     genai.configure(api_key=API_KEY)
-    # v1beta හෝ සාමාන්‍ය version එක අනුව ගැළපෙන model එක තෝරා ගැනීම
-    for model_name in ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro']:
-        try:
-            model = genai.GenerativeModel(model_name)
-            # නිකම්ම model එක වැඩදැයි පරීක්ෂා කිරීමට (Dummy check)
-            return model
-        except:
-            continue
-    return None
+    # 404 Error එක මඟහැරීමට වඩාත් ස්ථාවර 'gemini-pro' පාවිච්චි කිරීම
+    try:
+        return genai.GenerativeModel('gemini-pro')
+    except:
+        return genai.GenerativeModel('models/gemini-pro')
 
 # --- UI Styling (පින්තූරයට ගැළපෙන CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
@@ -51,7 +46,6 @@ st.markdown("""
 def create_chart_html(title, planets_data, center_text):
     houses = {i: "" for i in range(1, 13)}
     if planets_data:
-        # JSON එකෙන් එන දත්ත පිරිසිදු කර කොටු වලට දැමීම
         for k, v in planets_data.items():
             try: houses[int(k)] = v
             except: pass
@@ -81,40 +75,30 @@ with st.sidebar:
 if submit:
     if name and pob:
         model = get_stable_model()
-        if not model:
-            st.error("API සම්බන්ධතාවය පිහිටුවීමට නොහැකි විය. කරුණාකර API Key එක පරීක්ෂා කරන්න.")
-        else:
-            prompt = f"""
-            නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}.
-            මෙම විස්තර අනුව 'රාශි' (Rashi) සහ 'නවාංශක' (Navamsa) සටහන් වල ග්‍රහ පිහිටීම් පහත JSON ආකෘතියට පමණක් සිංහලෙන් ලබා දෙන්න:
-            {{
-                "rashi": {{"1": "රවි", "5": "සිකුරු"}},
-                "navamsa": {{"2": "ගුරු", "10": "සඳු"}},
-                "details": "කරුණාකර මෙහි ලග්නය, නැකත, යෝගය සහ පලාඵල විස්තරය සිංහලෙන් ලියන්න."
-            }}
-            කරුණාකර JSON එක හැර වෙනත් කිසිවක් ලබා නොදෙන්න.
-            """
-            
-            with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
-                try:
-                    response = model.generate_content(prompt)
-                    # JSON එක පමණක් වෙන් කර ගැනීම
-                    res_text = response.text.strip()
-                    if "```json" in res_text:
-                        res_text = res_text.split("```json")[1].split("```")[0]
-                    elif "```" in res_text:
-                        res_text = res_text.split("```")[1].split("```")[0]
-                    
-                    data = json.loads(res_text)
-                    
-                    col1, col2 = st.columns([1, 1.5])
-                    with col1:
-                        st.markdown(create_chart_html("රාශි සටහන", data.get('rashi'), "රාශි"), unsafe_allow_html=True)
-                        st.markdown(create_chart_html("නවාංශක සටහන", data.get('navamsa'), "නවාංශක"), unsafe_allow_html=True)
-                    with col2:
-                        st.markdown(f'<div class="report-card"><h3>ජ්‍යොතිෂ වාර්තාව</h3><hr>{data.get("details")}</div>', unsafe_allow_html=True)
-                except Exception as e:
-                    st.error("දත්ත ලබා ගැනීමේදී ගැටලුවක් ඇති විය.")
-                    st.info(f"විස්තර: {str(e)}")
+        prompt = f"""
+        නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}.
+        වෛදික ජ්‍යොතිෂයට අනුව 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
+        {{
+            "rashi": {{"1": "රවි", "5": "සිකුරු"}},
+            "navamsa": {{"2": "ගුරු", "10": "සඳු"}},
+            "details": "කරුණාකර මෙහි ලග්නය, නැකත සහ පලාඵල විස්තරය ලියන්න."
+        }}
+        කරුණාකර json පමණක් ලබා දෙන්න.
+        """
+        
+        with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
+            try:
+                response = model.generate_content(prompt)
+                res_text = response.text.strip().replace('```json', '').replace('```', '')
+                data = json.loads(res_text)
+                
+                col1, col2 = st.columns([1, 1.5])
+                with col1:
+                    st.markdown(create_chart_html("රාශි සටහන", data.get('rashi'), "රාශි"), unsafe_allow_html=True)
+                    st.markdown(create_chart_html("නවාංශක සටහන", data.get('navamsa'), "නවාංශක"), unsafe_allow_html=True)
+                with col2:
+                    st.markdown(f'<div class="report-card"><h3>ජ්‍යොතිෂ වාර්තාව</h3><hr>{data.get("details")}</div>', unsafe_allow_html=True)
+            except Exception as e:
+                st.error("API Error: Model එක සමඟ සම්බන්ධ වීමට නොහැකි විය.")
     else:
         st.warning("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න.")
