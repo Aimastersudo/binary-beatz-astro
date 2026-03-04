@@ -4,12 +4,12 @@ import json
 
 # --- Gemini Configuration ---
 # ඔයා ලබා දුන් API Key එක මෙහි ඇතුළත් කර ඇත
-API_KEY = "AIzaSyDSh4ETvoD3_tNTyi09hag34oT_A5XeaiU"
+API_KEY = "AIzaSyA7VCTAzBTMzDAVpUg5spYVm24fWfPLg-Y"
 
 def get_astrology_response(prompt):
     try:
         genai.configure(api_key=API_KEY)
-        # API එකේ පවතින විවිධ Models උත්සාහ කර බලයි (404 Error එක මඟහැරීමට)
+        # API එකේ පවතින විවිධ Models උත්සාහ කර බලයි (NotFound/404 Error මඟහැරීමට)
         models_to_try = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']
         
         for model_id in models_to_try:
@@ -24,11 +24,12 @@ def get_astrology_response(prompt):
     except Exception:
         return None
 
-# --- UI Styling (ඔබ එවූ Sample පින්තූරයට ගැළපෙන සේ සැකසූ CSS) ---
+# --- UI Styling (පින්තූරයට ගැළපෙන සේ සැකසූ CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
 
 st.markdown("""
 <style>
+    .main { background-color: #f8fafc; }
     .report-card { 
         background-color: white; padding: 15px; border-radius: 10px; 
         box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd;
@@ -86,13 +87,13 @@ if submit:
     if name and pob:
         prompt = f"""
         නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}.
-        මෙම තොරතුරු අනුව 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
+        මෙම තොරතුරු අනුව වෛදික ජ්‍යොතිෂයට අදාළ 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
         {{
             "rashi": {{"1": "රවි", "5": "සඳු"}},
             "navamsa": {{"2": "කුජ", "10": "ගුරු"}},
-            "details": "ලග්නය, නැකත සහ අනෙකුත් විස්තර මෙහි ලියන්න."
+            "details": "ලග්නය, නැකත සහ අනෙකුත් පලාඵල විස්තර මෙහි ලියන්න."
         }}
-        කරුණාකර json දත්ත පමණක් ලබා දෙන්න.
+        කරුණාකර json දත්ත පමණක් ලබා දෙන්න. වෙනත් කිසිවක් ලියන්න එපා.
         """
         
         with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
