@@ -4,7 +4,7 @@ import json
 
 # --- Gemini AI Configuration ---
 # ඔයා ලබාගත් API Key එක මෙතැනට ඇතුළත් කරන්න
-API_KEY = "ඔAIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
+API_KEY = "AIzaSyBG50Auv1WY8-OmhKN8R7JN-4ynlSTpjdk"
 
 def get_stable_model():
     genai.configure(api_key=API_KEY)
@@ -14,7 +14,7 @@ def get_stable_model():
     except:
         return genai.GenerativeModel('models/gemini-pro')
 
-# --- UI Styling (පින්තූරයට ගැළපෙන CSS) ---
+# --- UI Styling (Sample පින්තූරයට ගැළපෙන CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
 
 st.markdown("""
@@ -75,16 +75,7 @@ with st.sidebar:
 if submit:
     if name and pob:
         model = get_stable_model()
-        prompt = f"""
-        නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}.
-        වෛදික ජ්‍යොතිෂයට අනුව 'rashi' සහ 'navamsa' සටහන් වල ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න:
-        {{
-            "rashi": {{"1": "රවි", "5": "සිකුරු"}},
-            "navamsa": {{"2": "ගුරු", "10": "සඳු"}},
-            "details": "කරුණාකර මෙහි ලග්නය, නැකත සහ පලාඵල විස්තරය ලියන්න."
-        }}
-        කරුණාකර json පමණක් ලබා දෙන්න.
-        """
+        prompt = f"නම: {name}, උපන් දිනය: {dob}, වේලාව: {tob}, ස්ථානය: {pob}. වෛදික ජ්‍යොතිෂයට අනුව 'rashi' සහ 'navamsa' ග්‍රහ පිහිටීම් json එකක් ලෙස සිංහලෙන් ලබා දෙන්න."
         
         with st.spinner("AI මගින් දත්ත විශ්ලේෂණය කරමින් පවතී..."):
             try:
@@ -99,6 +90,6 @@ if submit:
                 with col2:
                     st.markdown(f'<div class="report-card"><h3>ජ්‍යොතිෂ වාර්තාව</h3><hr>{data.get("details")}</div>', unsafe_allow_html=True)
             except Exception as e:
-                st.error("API Error: Model එක සමඟ සම්බන්ධ වීමට නොහැකි විය.")
+                st.error("දත්ත ලබා ගැනීමේදී ගැටලුවක් ඇති විය. කරුණාකර API Key එක පරීක්ෂා කරන්න.")
     else:
         st.warning("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න.")
