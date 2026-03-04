@@ -2,10 +2,16 @@ import streamlit as st
 import google.generativeai as genai
 
 # --- Gemini AI Configuration ---
-# ඔයා ලබාගත් Gemini API Key එක මෙතැනට ඇතුළත් කරන්න
+# ඔයාගේ API Key එක මෙතැනට ඇතුළත් කරන්න
 API_KEY = "AIzaSyDPW_CL3i0GZNHwwAxEedkVtXyaDZicsTE"
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+
+try:
+    genai.configure(api_key=API_KEY)
+    # NotFound error එක මඟහරවා ගැනීමට models/ පදය එක් කිරීම
+    model = genai.GenerativeModel('models/gemini-1.5-flash')
+except Exception as e:
+    # Flash වැඩ නැත්නම් Pro version එක උත්සාහ කරයි
+    model = genai.GenerativeModel('models/gemini-pro')
 
 # --- UI Styling (CSS) ---
 st.set_page_config(page_title="Binary Beatz AI Astro", layout="wide")
@@ -26,7 +32,6 @@ st.markdown("""
         color: black; 
         font-weight: bold; 
     }
-    /* කේන්දර සටහනේ හැඩය (Sri Lankan Style Chart) */
     .horo-chart { 
         display: grid; 
         grid-template-columns: repeat(4, 1fr); 
@@ -55,15 +60,14 @@ st.markdown("""
 
 # --- App Header ---
 st.title("🔮 Binary Beatz AI Astrology Center")
-st.markdown("Gemini AI තාක්ෂණයෙන් ක්‍රියාත්මක වන 100% නිවැරදි ජ්‍යොතිෂ සේවාව")
+st.markdown("Gemini AI තාක්ෂණයෙන් ක්‍රියාත්මක වන ජ්‍යොතිෂ සේවාව")
 
 # --- Navigation Tabs ---
 tab1, tab2 = st.tabs(["📊 කේන්දර පරීක්ෂාව (Horoscope)", "💑 පෝරොන්දම් සැසඳීම (Matching)"])
 
-# --- TAB 1: HOROSCOPE GENERATION ---
+# --- TAB 1: HOROSCOPE ---
 with tab1:
     col_a, col_b = st.columns([1, 1.5])
-    
     with col_a:
         st.subheader("ඔබේ උපන් විස්තර")
         u_name = st.text_input("නම")
@@ -76,7 +80,6 @@ with tab1:
         if u_name and u_pob:
             with col_b:
                 st.subheader(f"{u_name} මහතාගේ/මියගේ රාශි චක්‍රය")
-                # Chart UI
                 st.markdown(f"""
                 <div class="horo-chart">
                     <div class="house">12<br>මීන</div><div class="house">1<br>මේෂ</div><div class="house">2<br>වෘෂභ</div><div class="house">3<br>මිථුන</div>
@@ -87,28 +90,25 @@ with tab1:
                 """, unsafe_allow_html=True)
                 
                 with st.spinner("AI පලාඵල ලියමින් පවතී..."):
-                    prompt = f"""
-                    මම {u_name}. උපන් දිනය: {u_dob}, වේලාව: {u_tob}, ස්ථානය: {u_pob}. 
-                    වෛදික ජ්‍යොතිෂයට අනුව මාගේ ලග්නය, නැකත සහ උපන් වෙලාව අනුව ග්‍රහ පිහිටීම් පරීක්ෂා කර, 
-                    ඉදිරි අනාගතය පිළිබඳ සවිස්තරාත්මක පලාඵල විස්තරයක් සිංහලෙන් ලබා දෙන්න.
-                    """
-                    response = model.generate_content(prompt)
-                    st.markdown("### Gemini AI පලාඵල විස්තරය")
-                    st.write(response.text)
+                    prompt = f"මම {u_name}. උපන් දිනය: {u_dob}, වේලාව: {u_tob}, ස්ථානය: {u_pob}. වෛදික ජ්‍යොතිෂයට අනුව පලාඵල විස්තරයක් සිංහලෙන් ලබා දෙන්න."
+                    try:
+                        response = model.generate_content(prompt)
+                        st.markdown("### Gemini AI පලාඵල විස්තරය")
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
         else:
             st.error("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න.")
 
-# --- TAB 2: PORONDAM MATCHING ---
+# --- TAB 2: MATCHING ---
 with tab2:
     st.subheader("විවාහ පෝරොන්දම් ගැලපීම")
     col1, col2 = st.columns(2)
-    
     with col1:
         st.info("👦 පුරුෂ පාර්ශවය")
         m_name = st.text_input("ඔහුගේ නම")
         m_dob = st.date_input("උපන් දිනය", key="m_dob")
         m_tob = st.time_input("උපන් වේලාව", key="m_tob")
-        
     with col2:
         st.info("👧 ස්ත්‍රී පාර්ශවය")
         f_name = st.text_input("ඇයගේ නම")
@@ -116,22 +116,13 @@ with tab2:
         f_tob = st.time_input("උපන් වේලාව", key="f_tob")
     
     match_btn = st.button("පෝරොන්දම් සැසඳීම ආරම්භ කරන්න")
-    
     if match_btn:
         if m_name and f_name:
             with st.spinner("පෝරොන්දම් ගැලපීම ගණනය කරමින් පවතී..."):
-                match_prompt = f"""
-                පහත දෙදෙනාගේ උපන් විස්තර අනුව පෝරොන්දම් ගැලපීම සිදු කරන්න:
-                පුරුෂයා: {m_name} (උපත: {m_dob} {m_tob})
-                ස්ත්‍රිය: {f_name} (උපත: {f_dob} {f_tob})
-                
-                නැකත් පෝරොන්දම, ගණ පෝරොන්දම, යෝනි පෝරොන්දම ඇතුළු ප්‍රධාන පෝරොන්දම් පරීක්ෂා කර, 
-                මෙම දෙදෙනාගේ විවාහ ගැලපීම පිළිබඳව සවිස්තරාත්මක වාර්තාවක් සිංහලෙන් ලබා දෙන්න. 
-                අවසානයේ විවාහය සඳහා මෙය සුදුසුද යන්න නිගමනය කරන්න.
-                """
-                match_res = model.generate_content(match_prompt)
-                st.success("විශ්ලේෂණය අවසන්!")
-                st.markdown(f"### {m_name} සහ {f_name} අතර පෝරොන්දම් වාර්තාව")
-                st.write(match_res.text)
-        else:
-            st.warning("දෙදෙනාගේම විස්තර සම්පූර්ණ කරන්න.")
+                match_prompt = f"පුරුෂයා: {m_name} ({m_dob}), ස්ත්‍රිය: {f_name} ({f_dob}). මොවුන්ගේ පෝරොන්දම් ගැලපීම ගැන සිංහලෙන් වාර්තාවක් දෙන්න."
+                try:
+                    match_res = model.generate_content(match_prompt)
+                    st.success("විශ්ලේෂණය අවසන්!")
+                    st.write(match_res.text)
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
