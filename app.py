@@ -4,7 +4,7 @@ import json
 
 # --- Gemini Configuration ---
 # ඔයා ලබා දුන් API Key එක මෙහි ඇතුළත් කර ඇත
-API_KEY = "AIzaSyDPW_CL3i0GZNHwwAxEedkVtXyaDZicsTE"
+API_KEY = "AIzaSyDSh4ETvoD3_tNTyi09hag34oT_A5XeaiU"
 
 def get_chat_response(prompt):
     genai.configure(api_key=API_KEY)
